@@ -37,7 +37,7 @@ def load_and_clean(path: str) -> pd.DataFrame:
 
 def build_classifier():
     """Load the zero-shot classification pipeline."""
-    return pipeline("zero-shot-classification", model="facebook/bart-large-mnli")
+    return pipeline("zero-shot-classification", model="cross-encoder/nli-MiniLM2-L6-H768")
 
 
 def classify_review(classifier, comment: str) -> dict:
@@ -62,7 +62,20 @@ def classify_all(df: pd.DataFrame, classifier) -> pd.DataFrame:
 
 def build_professor_profiles(df: pd.DataFrame) -> pd.DataFrame:
     """Average aspect scores per professor to build a per-professor profile."""
-    return df.groupby("professor")[ASPECTS].mean().reset_index()
+    profiles = df.groupby("professor")[ASPECTS].mean().reset_index()
+    
+    # pull avgRating and department from the original reviews (first value per professor)
+    meta = df.groupby("professor")[["avgRating", "department"]].first().reset_index()
+    
+    # count how many reviews each professor has in our dataset
+    review_counts = df.groupby("professor")["comment"].count().reset_index()
+    review_counts.columns = ["professor", "numRatings"]
+    
+    # merge everything together
+    profiles = profiles.merge(meta, on="professor")
+    profiles = profiles.merge(review_counts, on="professor")
+    
+    return profiles
 
 
 def main():

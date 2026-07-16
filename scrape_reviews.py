@@ -168,7 +168,7 @@ def main():
     df_profs = get_professors(school_id, num_professors=500)
     print(df_profs.head())
 
-    df_all = scrape_all_reviews(df_profs, num_reviews=20, min_ratings=5)
+    df_all = scrape_all_reviews(df_profs, num_reviews=25, min_ratings=2)
     df_all.to_csv("rmp_reviews.csv", index=False)
     print(f"Collected {len(df_all)} reviews across {len(df_profs)} professors")
 
